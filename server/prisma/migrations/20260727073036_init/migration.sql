@@ -1,4 +1,3 @@
--- CreateTable
 CREATE TABLE "Property" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
@@ -6,7 +5,6 @@ CREATE TABLE "Property" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- CreateTable
 CREATE TABLE "RateOverride" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "propertyId" INTEGER NOT NULL,
@@ -17,7 +15,6 @@ CREATE TABLE "RateOverride" (
     CONSTRAINT "RateOverride_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- CreateTable
 CREATE TABLE "BlockedDate" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "propertyId" INTEGER NOT NULL,
@@ -27,7 +24,6 @@ CREATE TABLE "BlockedDate" (
     CONSTRAINT "BlockedDate_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- CreateTable
 CREATE TABLE "Booking" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "externalId" TEXT,
@@ -41,14 +37,10 @@ CREATE TABLE "Booking" (
     CONSTRAINT "Booking_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- CreateIndex
 CREATE INDEX "RateOverride_propertyId_startDate_endDate_idx" ON "RateOverride"("propertyId", "startDate", "endDate");
 
--- CreateIndex
 CREATE INDEX "BlockedDate_propertyId_startDate_endDate_idx" ON "BlockedDate"("propertyId", "startDate", "endDate");
 
--- CreateIndex
 CREATE INDEX "Booking_propertyId_checkIn_checkOut_idx" ON "Booking"("propertyId", "checkIn", "checkOut");
 
--- CreateIndex
 CREATE INDEX "Booking_externalId_idx" ON "Booking"("externalId");
