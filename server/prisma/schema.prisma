@@ -1,0 +1,65 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Property {
+  id        Int      @id @default(autoincrement())
+  name      String
+  baseRate  Float
+  createdAt DateTime @default(now())
+
+  rateOverrides RateOverride[]
+  blockedDates  BlockedDate[]
+  bookings      Booking[]
+}
+
+model RateOverride {
+  id          Int      @id @default(autoincrement())
+  propertyId  Int
+  startDate   DateTime
+  endDate     DateTime
+  nightlyRate Float
+  createdAt   DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId, startDate, endDate])
+}
+
+model BlockedDate {
+  id         Int      @id @default(autoincrement())
+  propertyId Int
+  startDate  DateTime
+  endDate    DateTime
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId, startDate, endDate])
+}
+
+model Booking {
+  id         Int      @id @default(autoincrement())
+  externalId String?
+  guestName  String
+  propertyId Int
+  checkIn    DateTime
+  checkOut   DateTime
+
+  source     String   @default("MANUAL")
+  status     String   @default("ACTIVE")
+
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId, checkIn, checkOut])
+  @@index([externalId])
+}
