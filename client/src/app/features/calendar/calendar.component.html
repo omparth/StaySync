@@ -1,0 +1,171 @@
+<header class="ss-toolbar">
+  <div class="ss-toolbar-identity">
+    <div class="brand-badge">
+      <mat-icon class="brand-icon">auto_awesome</mat-icon>
+      <span class="ss-toolbar-eyebrow">StaySync</span>
+    </div>
+    <h1 class="ss-display ss-property-name">{{ property()?.name ?? 'Loading property\u2026' }}</h1>
+    <div class="ss-base-rate-badge" *ngIf="property() as p">
+      <mat-icon class="rate-icon">payments</mat-icon>
+      <span>Base rate &middot; £{{ p.baseRate }} / night</span>
+    </div>
+  </div>
+
+  <div class="ss-toolbar-legend" role="list" aria-label="Calendar legend">
+    <span class="ss-legend-item" role="listitem"><i class="ss-flag ss-flag--available"></i>Available</span>
+    <span class="ss-legend-item" role="listitem"><i class="ss-flag ss-flag--blocked"></i>Blocked</span>
+    <span class="ss-legend-item" role="listitem"><i class="ss-flag ss-flag--booked"></i>Booked</span>
+    <span class="ss-legend-item" role="listitem"><i class="ss-flag ss-flag--override"></i>Custom rate</span>
+  </div>
+
+  <button
+    mat-flat-button
+    class="ss-import-btn"
+    [disabled]="actionInProgress()"
+    matTooltip="Reconcile reservations.json against current bookings (safe to run repeatedly)"
+    (click)="runImport()"
+  >
+    <mat-icon aria-hidden="true">cloud_sync</mat-icon>
+    Import reservations
+  </button>
+</header>
+
+<main class="ss-main">
+  <section class="ss-calendar-panel">
+    <div class="ss-month-nav">
+      <div class="month-controls">
+        <button mat-icon-button class="nav-btn" (click)="prevMonth()" matTooltip="Previous month" aria-label="Previous month">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <h2 class="ss-display ss-month-label">{{ monthLabel() }}</h2>
+        <button mat-icon-button class="nav-btn" (click)="nextMonth()" matTooltip="Next month" aria-label="Next month">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+      <button mat-stroked-button class="ss-today-btn" (click)="goToday()">Today</button>
+    </div>
+
+    <div class="ss-weekday-row">
+      <span *ngFor="let label of weekdayLabels">{{ label }}</span>
+    </div>
+
+    @if (loading()) {
+      <div class="ss-loading">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else {
+      <div class="ss-grid">
+        @for (week of weeks(); track $index) {
+          <div class="ss-week-row">
+            @for (day of week; track day.getTime()) {
+              @let info = dayInfo(day);
+              @let edge = isSelectionEdge(day);
+              <button
+                type="button"
+                class="ss-day-cell"
+                [class.ss-day-cell--muted]="!isCurrentMonth(day)"
+                [class.ss-day-cell--today]="isToday(day)"
+                [class.ss-day-cell--selected]="isSelected(day)"
+                [class.ss-day-cell--edge-start]="edge === 'start'"
+                [class.ss-day-cell--edge-end]="edge === 'end'"
+                (click)="onDayClick(day)"
+                [matTooltip]="info?.status === 'BOOKED' && info?.guestName ? 'Booked \u2014 ' + info?.guestName : ''"
+                [matTooltipDisabled]="info?.status !== 'BOOKED'"
+              >
+                <span
+                  class="ss-flag"
+                  [class.ss-flag--available]="info?.status === 'AVAILABLE'"
+                  [class.ss-flag--blocked]="info?.status === 'BLOCKED'"
+                  [class.ss-flag--booked]="info?.status === 'BOOKED'"
+                ></span>
+                <span class="ss-day-number">{{ dayNumber(day) }}</span>
+                <span class="ss-day-rate ss-mono" *ngIf="info as i">
+                  £{{ i.nightlyRate }}<span class="ss-override-dot" *ngIf="i.isOverride">&#9679;</span>
+                </span>
+                @if (info?.status === 'BOOKED') {
+                  <span class="ss-guest-chip">{{ guestInitials(info?.guestName ?? null) }}</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <aside class="ss-side-panel">
+    <div class="ss-panel-card">
+      <div class="card-header-badge">
+        <mat-icon class="card-icon">date_range</mat-icon>
+        <h3 class="ss-display ss-panel-title">Selection Details</h3>
+      </div>
+      @if (hasActiveSelection()) {
+        <div class="ss-selection-info-box">
+          <p class="ss-selection-range">{{ selectionLabel() }}</p>
+          <p class="ss-selection-meta ss-mono">
+            <strong>{{ selectionNights() }} night(s)</strong> &middot; Total £{{ selectionTotal() }}
+          </p>
+        </div>
+        <div class="ss-action-grid">
+          <button mat-stroked-button class="action-btn" [disabled]="actionInProgress()" (click)="openSetRate()">
+            <mat-icon aria-hidden="true">sell</mat-icon>
+            Set rate
+          </button>
+          <button mat-stroked-button class="action-btn" [disabled]="actionInProgress()" (click)="openBlock()">
+            <mat-icon aria-hidden="true">block</mat-icon>
+            Block
+          </button>
+          <button mat-stroked-button class="action-btn" [disabled]="actionInProgress()" (click)="openUnblock()">
+            <mat-icon aria-hidden="true">lock_open</mat-icon>
+            Unblock
+          </button>
+          <button mat-flat-button class="action-btn primary-action" [disabled]="actionInProgress()" (click)="openNewBooking()">
+            <mat-icon aria-hidden="true">event_available</mat-icon>
+            New booking
+          </button>
+        </div>
+        <button mat-button class="ss-clear-btn" (click)="clearSelection()">
+          <mat-icon aria-hidden="true">close</mat-icon> Clear selection
+        </button>
+      } @else {
+        <p class="ss-empty-state">
+          Click a date to start a range selection, then select an end date to perform rate overrides, blocks, or manual bookings.
+        </p>
+        <button mat-flat-button class="ss-primary-btn" (click)="openNewBooking()">
+          <mat-icon aria-hidden="true">event_available</mat-icon>
+          New booking
+        </button>
+      }
+    </div>
+
+    <div class="ss-panel-card">
+      <div class="card-header-badge">
+        <mat-icon class="card-icon">receipt_long</mat-icon>
+        <h3 class="ss-display ss-panel-title">Upcoming Bookings</h3>
+      </div>
+      @if (bookings().length === 0) {
+        <div class="ss-empty-state-card">
+          <mat-icon>event_busy</mat-icon>
+          <p>No upcoming bookings found.</p>
+        </div>
+      } @else {
+        <ul class="ss-booking-list">
+          @for (booking of bookings(); track booking.id) {
+            <li class="ss-booking-row" [class.ss-booking-row--cancelled]="booking.status === 'CANCELLED'">
+              <div class="booking-row-top">
+                <span class="ss-booking-guest">{{ booking.guestName }}</span>
+                <span class="ss-booking-source-pill" [class.source-channel]="booking.source === 'CHANNEL'">
+                  {{ booking.source === 'CHANNEL' ? 'Channel' : 'Manual' }}
+                </span>
+              </div>
+              <span class="ss-booking-dates ss-mono">
+                <mat-icon class="inline-date-icon">calendar_month</mat-icon>
+                {{ booking.checkIn }} &rarr; {{ booking.checkOut }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </aside>
+</main>
