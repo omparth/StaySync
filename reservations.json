@@ -1,0 +1,37 @@
+[
+  {
+    "id": "1001",
+    "guest": "Abhi B.",
+    "checkIn": "2026-08-10",
+    "checkOut": "2026-08-13",
+    "status": "ACTIVE"
+  },
+  {
+    "id": "1002",
+    "guest": "Partik K.",
+    "checkIn": "2026-08-15",
+    "checkOut": "2026-08-18",
+    "status": "ACTIVE"
+  },
+  {
+    "id": "1001",
+    "guest": "Vivek A.",
+    "checkIn": "2026-08-10",
+    "checkOut": "2026-08-13",
+    "status": "ACTIVE"
+  },
+  {
+    "id": "0999",
+    "guest": "-",
+    "checkIn": "2026-08-01",
+    "checkOut": "2026-08-04",
+    "status": "CANCELLED"
+  },
+  {
+    "id": "1003",
+    "guest": "Aditya P.",
+    "checkIn": "2026-08-13",
+    "checkOut": "2026-08-17",
+    "status": "ACTIVE"
+  }
+]
