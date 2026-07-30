@@ -191,6 +191,8 @@ cd server
 
 npm install
 
+Create a `.env` file by copying `.env.example`.
+
 npx prisma migrate dev
 
 npm run seed
