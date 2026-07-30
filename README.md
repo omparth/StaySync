@@ -200,7 +200,7 @@ npm start
 
 ## Frontend
 
-bash
+
 cd client
 
 npm install
